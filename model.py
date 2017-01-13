@@ -1,7 +1,6 @@
 import os
 import pdb
 
-from tensorflow.nn.rnn_cell import BasicLSTMCell
 import tensorflow as tf
 import numpy as np
 
@@ -22,7 +21,7 @@ class SoftAttentionModel():
         self.att_b = self.init_bias(1, name='att_b')
         # the word embedding weights
         with tf.device('/cpu:0'):
-            self.word_emb = tf.Variable(tf.random_uniform((n_words, params.dim_emb], -0.1, 0.1), name='word_emb')
+            self.word_emb = tf.Variable(tf.random_uniform([n_words, params.dim_emb], -0.1, 0.1), name='word_emb')
         # the main LSTM weights
         self.lstm_W = self.init_weight(params.dim_emb, params.dim_hid*4, name='lstm_W')
         self.lstm_U = self.init_weight(params.dim_hid, params.dim_hid*4, name='lstm_U')
@@ -109,14 +108,19 @@ class SoftAttentionModel():
             onehot_labels = tf.sparse_to_dense(concated, tf.pack([self.params.batch_size, self.n_words]), 1.0, 0.0)
 
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits_word, onehot_labels)
-            corss_entropy *= mask[:,step]
+            cross_entropy *= mask[:,step]
 
             current_loss = tf.reduce_sum(cross_entropy)
             total_loss += current_loss
 
         total_loss /= tf.reduce_sum(mask)
-        return loss, context, sentence, mask
-            
+        self.var_summaries([weighted_context, total_loss])
+        return total_loss, context, sentence, mask
+
+    def var_summaries(self, varlist):
+        for var in varlist:
+            tf.summary.scalar(var.name, var)
+            tf.summary.histogram(var.name+'_hist', var)
     def init_lstm(self, mean_ctx):
         init_mW = self.init_weight(self.params.dim_ctx, self.params.dim_hid, name='init_mW')
         init_mb = self.init_bias(self.params.dim_hid, name='init_mb')
