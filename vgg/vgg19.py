@@ -11,18 +11,15 @@ VGG_MEAN = [103.939, 116.779, 123.68]
 class Vgg19:
     def __init__(self):
         if not os.path.exists('vgg19.npy'):
-            print ('Please provide vgg19.npy (the pre-trained vgg19 model weights)')
-            sys.exit(0)
-
+            print ('Please provide vgg19.npy, the pre-trained vgg19 model provided by the original author.')
+            sys.exit('You can find it here: https://mega.nz/#!xZ8glS6J!MAnE91ND_WyfZ_8mvkuSa2YcA7q-1ehfSm-Q1fxOvvs')
         self.data_dict = np.load('vgg19.npy', encoding='latin1').item()
-        #print("npy file loaded")
     def build(self, rgb):
         """
         load variable from npy to build the VGG
         :param rgb: rgb image [batch, height, width, 3] values scaled [0, 1]
         """
         start_time = time.time()
-        #print("build model started")
         rgb_scaled = rgb * 255.0
 
         # Convert RGB to BGR
@@ -71,24 +68,19 @@ class Vgg19:
         self.relu7 = tf.nn.relu(self.fc7)
 
         self.fc8 = self.fc_layer(self.relu7, "fc8")
-
         self.prob = tf.nn.softmax(self.fc8, name="prob")
 
         self.data_dict = None
-        #print("build model finished: %ds" % (time.time() - start_time))
 
     def avg_pool(self, bottom, name):
         return tf.nn.avg_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name=name)
-
     def max_pool(self, bottom, name):
         return tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name=name)
-
     def conv_layer(self, bottom, name):
         with tf.variable_scope(name):
             filt = self.get_conv_filter(name)
 
             conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
-
             conv_biases = self.get_bias(name)
             bias = tf.nn.bias_add(conv, conv_biases)
 
@@ -109,14 +101,11 @@ class Vgg19:
             # Fully connected layer. Note that the '+' operation automatically
             # broadcasts the biases.
             fc = tf.nn.bias_add(tf.matmul(x, weights), biases)
-
             return fc
 
     def get_conv_filter(self, name):
         return tf.constant(self.data_dict[name][0], name="filter")
-
     def get_bias(self, name):
         return tf.constant(self.data_dict[name][1], name="biases")
-
     def get_fc_weight(self, name):
         return tf.constant(self.data_dict[name][0], name="weights")
