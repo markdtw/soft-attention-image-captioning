@@ -11,9 +11,11 @@ import numpy as np
 class Data_loader:
 
     def __init__(self, params):
-        self.imgs_vgg = np.load(params.data_dir+'imgs_vggc54.npy')
-        
+        self.imgs_vgg = np.load(params.data_dir+'imgsf16_vggc54.npy')
+        print ('Features loaded.')
         all_captions = cPickle.load(open(params.data_dir+'captions_train14.pkl', 'rb'))
+        print ('Captions loaded.')
+        pdb.set_trace()
         
         maxlen, word_to_index, index_to_word, bias_init_vector = self.preProBuildWordVocab(sentences, 100)
         self.word_to_index = word_to_index
@@ -38,7 +40,7 @@ class Data_loader:
         """
         # count up all word counts so that we can threshold
         # this shouldnt be too expensive of an operation
-        print 'preprocessing word counts and creating vocab based on word count threshold %d' % (word_count_threshold, )
+        print ('preprocessing word counts and creating vocab based on word count threshold %d' % (word_count_threshold, ))
         t0 = time.time()
         word_counts = {}
         nsents = 0
@@ -50,7 +52,7 @@ class Data_loader:
             for w in sent['tokens']:
                 word_counts[w] = word_counts.get(w, 0) + 1
         vocab = [w for w in word_counts if word_counts[w] >= word_count_threshold]
-        print 'filtered words from %d to %d in %.2fs' % (len(word_counts), len(vocab), time.time() - t0)
+        print ('filtered words from %d to %d in %.2fs' % (len(word_counts), len(vocab), time.time() - t0))
     
         # with K distinct words:
         # - there are K+1 possible inputs (START token and all the words)
