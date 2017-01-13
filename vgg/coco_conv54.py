@@ -47,6 +47,6 @@ def go():
                 feed_dict = {images: batch}
                 conv5_4 = sess.run(vgg.conv5_4, feed_dict=feed_dict)
                 all_conv5_4 = np.concatenate((all_conv5_4, conv5_4), axis=0)
-            np.save('cocotrainimgsvggconv54.npy', all_conv5_4)
+            np.save('train_vggc54npf16.npy', all_conv5_4.astype(np.float16, copy=False))
 
 go()
