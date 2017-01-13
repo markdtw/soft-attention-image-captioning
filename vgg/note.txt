@@ -1,4 +1,0 @@
-tensorflow vgg conv5_4 shape: (1, 14, 14, 512)
-need to np.swapaxes(feat, 1, 3) -> np.swapaxes(feat, 2, 3)
-
-show_attend_and_tell caffe vgg conv5_4 shape: (1, 512, 14, 14)
