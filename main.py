@@ -19,7 +19,7 @@ from model import SoftAttentionModel
 
 def train(params, data_loader):
 
-    model = SoftAttentionModel(params)
+    model = SoftAttentionModel(params, data_loader.n_words, data_loader.maxlen, data_loader.bivector)
     loss, context, sentence, mask = model.build()
 
 if __name__ == '__main__':

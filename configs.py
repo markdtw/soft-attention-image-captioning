@@ -14,7 +14,7 @@ def config_train():
                         help='Number of epochs.')
     parser.add_argument('--batch_size', type=int, default=80,               # batch_size
                         help='Initial learning rate.')
-    parser.add_argument('--ctx_shape', type=list, default=[196, 512],       # context_shape
+    parser.add_argument('--ctx_shape', type=list, default=[196, 512],       # ctx_shape
                         help='Context shape for attention.')
     parser.add_argument('--dim_ctx', type=int, default=512,                 # dim_ctx
                         help='Attention context dimension.')
@@ -22,7 +22,9 @@ def config_train():
                         help='Embedded dimension.')
     parser.add_argument('--dim_hid', type=int, default=256,                 # dim_hid
                         help='Hidden layer dimension (LSTM).')
-    parser.add_argument('--pre-trained-path', type=str, default=None,       # dim_hid
+    parser.add_argument('--bias_init', type=bool, default=True,             # bias_init
+                        help='Use bias init vector')
+    parser.add_argument('--pretrained_path', type=str, default=None,        # dim_hid
                         help='Given pretrained model path')
     FLAGS, unparsed = parser.parse_known_args()
     if len(unparsed) != 0: sys.exit('Unknown argument: {}'.format(unparsed))

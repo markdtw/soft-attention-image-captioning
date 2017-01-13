@@ -15,12 +15,12 @@ class Data_loader:
         
         all_captions = cPickle.load(open(params.data_dir+'captions_train14.pkl', 'rb'))
         
-        word_to_index, index_to_word, bias_init_vector = self.preProBuildWordVocab(sentences, 100)
+        maxlen, word_to_index, index_to_word, bias_init_vector = self.preProBuildWordVocab(sentences, 100)
         self.word_to_index = word_to_index
         self.index_to_word = index_to_word
+        self.bivec = bias_init_vector
         self.n_words = len(word_to_index)
-
-
+        self.maxlen = maxlen
 
     def preProBuildWordVocab(self, sentence_iterator, word_count_threshold):
         """This function is from karpathy/neuraltalk, replacing TA's utils.
