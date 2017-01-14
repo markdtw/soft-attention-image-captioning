@@ -2,12 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import argparse
-import os.path
 import pdb
-import sys 
-import time
-import gc
 
 from six.moves import xrange
 import tensorflow as tf
@@ -40,11 +35,12 @@ def train(params, data_loader):
             feed_dict = {context: context_batch,
                          sentence: sequence_batch,
                          mask: masks_batch}
-            _, loss_val = sess.run([train_op, loss], feed_dict=feed_dict)
+            summary, _, loss_val = sess.run([merged, train_op, loss], feed_dict=feed_dict)
+            train_writer.add_summary(summary)
             if bat % 10 == 0:
                 print ('epoch: %03d, batch: %04d, loss: %.3f' % (epoch, bat, loss_val))
 
-        saver.save(sess, params.log_dir+'model-epoch-{}'.format(epoch), global_step=epoch)
+        saver.save(sess, params.log_dir+'model-epoch'.format(epoch), global_step=epoch)
 
 if __name__ == '__main__':
     params = config_train()
