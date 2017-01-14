@@ -15,7 +15,7 @@ import skimage.color
 from tqdm import tqdm
 
 import vgg19
-import utils
+import vgg_utils
 
 # len all = 82783 /199 = 416
 all_train = sorted(glob.glob('train2014/*')) # mscoco images folder
@@ -35,13 +35,12 @@ def go():
     all_conv5_4 = np.zeros((0, 14, 14, 512))
     with tf.Graph().as_default():
         with tf.Session() as sess:
-            images = tf.placeholder(tf.float32, [batch_size, 224, 224, 3])
+            images = tf.placeholder(tf.float32, [None, 224, 224, 3])
             vgg = vgg19.Vgg19()
             vgg.build(images)
             for index in tqdm(xrange(0, n_all, batch_size)):
                 if index == n_all - batch_size + 1:
                     batch = get_batchimgs_loop(index, batch_size-1)
-                    batch.append(np.zeros((1, 14, 14, 512)))
                 else:
                     batch = get_batchimgs_loop(index, batch_size)
                 feed_dict = {images: batch}

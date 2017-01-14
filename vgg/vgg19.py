@@ -10,10 +10,11 @@ VGG_MEAN = [103.939, 116.779, 123.68]
 
 class Vgg19:
     def __init__(self):
-        if not os.path.exists('vgg19.npy'):
+        abs_path = '/home/markd/learnSonTin/Soft_Attention_Captioning/vgg/vgg19.npy'
+        if not os.path.exists(abs_path):
             print ('Please provide vgg19.npy, the pre-trained vgg19 model provided by the original author.')
             sys.exit('You can find it here: https://mega.nz/#!xZ8glS6J!MAnE91ND_WyfZ_8mvkuSa2YcA7q-1ehfSm-Q1fxOvvs')
-        self.data_dict = np.load('vgg19.npy', encoding='latin1').item()
+        self.data_dict = np.load(abs_path, encoding='latin1').item()
     def build(self, rgb):
         """
         load variable from npy to build the VGG
