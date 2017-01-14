@@ -20,7 +20,7 @@ from model import SoftAttentionModel
 def train(params, data_loader):
     model = SoftAttentionModel(params, data_loader.n_words, data_loader.maxlen, data_loader.bivec)
     loss, context, sentence, mask = model.build()
-    train_op = tf.train.RMSPropOptimizer(params.learning_rate)
+    train_op = tf.train.RMSPropOptimizer(params.learning_rate).minimize(loss)
     merged = tf.summary.merge_all()
 
     init_op = tf.global_variables_initializer()
@@ -36,10 +36,10 @@ def train(params, data_loader):
     for epoch in xrange(params.epoch):
         for bat in xrange(data_loader.num_batches):
             context_batch, sequence_batch, masks_batch = data_loader.next_batch()
-            _, loss_val = sess.run([train_op, loss], feed_dict={
-                context: context_batch,
-                sentence: sequence_batch,
-                masks_batch: masks_batch})
+            feed_dict = {context: context_batch,
+                         sentence: sequence_batch,
+                         mask: masks_batch}
+            _, loss_val = sess.run([train_op, loss], feed_dict=feed_dict)
             if bat % 10 == 0:
                 print ('epoch: %03d, batch: %04d, loss: %.3f' % (epoch, bat, loss_val))
 
