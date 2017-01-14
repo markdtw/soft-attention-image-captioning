@@ -1,5 +1,6 @@
 import os
 import pdb
+import math
 
 import tensorflow as tf
 import numpy as np
@@ -49,24 +50,24 @@ class SoftAttentionModel():
         # context is the visual context input, extracted from vgg's conv5-4, shape is 14*14*512 (196, 512).
         # sentence is the transformed-from-word-to-index caption we are going to predict.
         # mask is the corresponding sentence mask with its length, with 1 as activation and 0 otherwise.
-        context = tf.placeholder(tf.float32, [self.batch_size, self.ctx_shape[0], self.ctx_shape[1]])
-        sentence = tf.placeholder(tf.int32, [self.batch_size, self.steps])
-        mask = tf.placeholder(tf.float32, [self.batch_size, self.steps])
+        context = tf.placeholder(tf.float32, [self.params.batch_size, self.params.ctx_shape[0], self.params.ctx_shape[1]])
+        sentence = tf.placeholder(tf.int32, [self.params.batch_size, self.steps])
+        mask = tf.placeholder(tf.float32, [self.params.batch_size, self.steps])
 
-        # In the paper, the initial memory state (c) and hidden state (h) of the LSTM 
-        #  are predicted by an average of the annotation vectors fed through two separate MLPs.
-        c, h = self.init_lstm(tf.reduce_mean(context, 1))
-        
         # context have to be flattened to do tf.matmul
         context_flatten = tf.reshape(context, [-1, self.params.dim_ctx])
         context_encoded = tf.matmul(context_flatten, self.image_att_W)
         context_encoded = tf.reshape(context_encoded, [-1, self.params.ctx_shape[0], self.params.ctx_shape[1]])
 
+        # In the paper, the initial memory state (c) and hidden state (h) of the LSTM 
+        #  are predicted by an average of the annotation vectors fed through two separate MLPs.
+        c, h = self.init_lstm(tf.reduce_mean(context, 1))
+
         total_loss = 0.0
         for step in xrange(self.steps):
             # calculate the context for alpha, then we are pretty much done with the attention part
             # potential bug: context_encoded += tf.expand_dims(tf.matmul(h, self.hidden_att_W), 1) + self.previous_att_b
-            context_encoded = tf.expand_dims(tf.matmul(h, self.hidden_att_W), 1) + self.previous_att_b
+            context_encoded += tf.expand_dims(tf.matmul(h, self.hidden_att_W), 1) + self.previous_att_b
             context_encoded = tf.nn.tanh(context_encoded)
             context_encoded_flat = tf.reshape(context_encoded, [-1, self.params.dim_ctx])
             alpha = tf.matmul(context_encoded_flat, self.att_W) + self.att_b
@@ -81,8 +82,7 @@ class SoftAttentionModel():
             else:
                 tf.get_variable_scope().reuse_variables()
                 with tf.device('/cpu:0'):
-                    word_emb = tf.nn.embedding_lookup(self.word_emb, sentence[: step-1])
-
+                    word_emb = tf.nn.embedding_lookup(self.word_emb, sentence[:, step-1])
             x_t = tf.matmul(word_emb, self.lstm_W) + self.lstm_b
             lstm_pack = tf.matmul(h, self.lstm_U) + x_t + tf.matmul(weighted_context, self.context_encoded_W)
             # LSTM standard equations, detail:
@@ -102,7 +102,7 @@ class SoftAttentionModel():
             logits_word = tf.matmul(logits, self.decode_word_W) + self.decode_word_b
 
             # convert the sentence to single word and then to one-hot vectors
-            labels = tf.expand_dims(sentence[: step], 1)
+            labels = tf.expand_dims(sentence[:, step], 1)
             indices = tf.expand_dims(tf.range(0, self.params.batch_size, 1), 1)
             concated = tf.concat(1, [indices, labels])
             onehot_labels = tf.sparse_to_dense(concated, tf.pack([self.params.batch_size, self.n_words]), 1.0, 0.0)
