@@ -7,7 +7,7 @@ import numpy as np
 
 class SoftAttentionModel():
     
-    def __init__(self, params, n_words, maxlen, bivector):
+    def __init__(self, params, n_words, maxlen, bivector=None):
         self.params = params
         self.n_words = n_words
         self.steps = maxlen + 1
@@ -116,6 +116,54 @@ class SoftAttentionModel():
         total_loss /= tf.reduce_sum(mask)
         self.var_summaries([weighted_context, total_loss])
         return total_loss, context, sentence, mask
+
+    def gen_caption(self):
+        context = tf.placeholder(tf.float32, [1, self.params.ctx_shape[0], self.params.ctx_shape[1]])
+        c, h = self.init_lstm(tf.reduce_mean(context, 1))
+
+        context_encoded = tf.matmul(tf.squeeze(context), self.image_att_W)
+        word_emb = tf.zeros([1, self.params.dim_emb])
+
+        sentence = []
+        alpha_list = []
+        logits_list = []
+        for step in xrange(self.steps-1):
+            context_encoded += tf.matmul(h, self.hidden_att_W) + self.previous_att_b
+            context_encoded = tf.nn.tanh(context_encoded)
+
+            alpha = tf.matmul(context_encoded, self.att_W) + self.att_b
+            alpha = tf.reshape(alpha, [-1, self.params.ctx_shape[0]])
+            alpha = tf.nn.softmax(alpha)
+            alpha = tf.reshape(alpha, (self.params.ctx_shape[0], -1))
+            weighted_context = tf.reduce_sum(tf.squeeze(context) * alpha, 0)
+            weighted_context = tf.expand_dims(weighted_context, 0)
+            
+            alpha_list.append(alpha)
+
+            x_t = tf.matmul(word_emb, self.lstm_W) + self.lstm_b
+            lstm_pack = tf.matmul(h, self.lstm_U) + x_t + tf.matmul(weighted_context, self.context_encoded_W)
+            i, f, o, new_c = tf.split(1, 4, lstm_pack)
+            i = tf.nn.sigmoid(i)
+            f = tf.nn.sigmoid(f)
+            o = tf.nn.sigmoid(o)
+            new_c = tf.nn.tanh(new_c)
+            c = i * new_c + f * c
+            h = o * tf.nn.tanh(c)           # bugs in original code
+
+            logits = tf.matmul(h, self.decode_lstm_W) + self.decode_lstm_b +\
+                     tf.matmul(weighted_context, self.decode_lstm_ctx_W) + self.decode_lstm_ctx_b +\
+                     tf.matmul(word_emb, self.decode_lstm_word_W) + self.decode_lstm_word_b
+            logits = tf.nn.relu(logits)
+            logits_word = tf.matmul(logits, self.decode_word_W) + self.decode_word_b
+            max_prob_word = tf.argmax(logits_word, 1)
+
+            with tf.device('/cpu:0'):
+                word_emb = tf.nn.embedding_lookup(self.word_emb, max_prob_word)
+
+            sentence.append(max_prob_word)
+            logits_list.append(logits_word)
+
+        return context, sentence, logits_list, alpha_list
 
     def var_summaries(self, varlist):
         for var in varlist:

@@ -14,10 +14,8 @@ import numpy as np
 
 class Data_loader:
 
-    def __init__(self, params):
+    def __init__(self, params, inference=False):
         self.params = params
-        self.imgs_vgg = np.load(params.data_dir+'train_vggc54npf16.npy')
-        print ('Features loaded.')
         captions = cPickle.load(open(params.data_dir+'train_captions_ultimate.pkl', 'rb'))
         self.captions, sentences = self.captionProcessing(captions)
         self.captions = pd.DataFrame(self.captions)
@@ -29,7 +27,16 @@ class Data_loader:
         self.n_words = len(word_to_index)
         self.maxlen = maxlen
 
-        self.create_batches()
+        if inference:
+            if params.eval_all:
+                #TODO
+                pass
+            else:
+                self.img_path = params.img_path
+        else:
+            self.imgs_vgg = np.load(params.data_dir+'train_vggc54npf16.npy')
+            print ('Features loaded.')
+            self.create_batches()
     
     def convert_idx_mask(self, sequs_batch):
         new_seq = []
