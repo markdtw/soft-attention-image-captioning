@@ -61,6 +61,8 @@ class Data_loader:
         feats_index = self.captions['image_index'][self.batch_pointer:self.batch_pointer+self.params.batch_size]
         feats_batch = self.imgs_vgg[feats_index]
         feats_batch = feats_batch.reshape(-1, self.params.ctx_shape[0], self.params.ctx_shape[1])
+        
+        self.batch_pointer += self.params.batch_size
 
         return feats_batch, sequs_batch, masks_batch
     def reset_batch_pointer(self):
