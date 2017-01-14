@@ -41,7 +41,7 @@ class SoftAttentionModel():
         if params.bias_init:
             self.decode_word_b = tf.Variable(bivector.astype(np.float32), name='decode_word_b')
         else:
-            self.decode_word_b = self.init_weight(n_words, name='decode_word_b')
+            self.decode_word_b = self.init_bias(n_words, name='decode_word_b')
 
     def build(self):
         """Build the model base on the paper: (https://arxiv.org/pdf/1502.03044v3.pdf)
