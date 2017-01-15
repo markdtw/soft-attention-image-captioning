@@ -12,7 +12,7 @@ class SoftAttentionModel():
         self.n_words = n_words
         self.steps = maxlen + 1
         # tf variables are initialized with the calling(accessing) priority for better understanding.
-        # image attention weight is for the input feature map (14, 14, 512)
+        # image attention weight is for the input feature map (196, 512)
         # hidden attention weight and the previous attention bias deals with the encoded context
         self.image_att_W = self.init_weight(params.dim_ctx, params.dim_ctx, name='image_att_W')
         self.hidden_att_W = self.init_weight(params.dim_hid, params.dim_ctx, name='hidden_att_W')
@@ -114,7 +114,8 @@ class SoftAttentionModel():
             total_loss += current_loss
 
         total_loss /= tf.reduce_sum(mask)
-        self.var_summaries([weighted_context, total_loss])
+        #self.var_summaries([total_loss, self.att_W, self.lstm_W, self.context_encoded_W, self.decode_lstm_W])
+        self.var_summaries([total_loss])
         return total_loss, context, sentence, mask
 
     def gen_caption(self):
@@ -166,9 +167,8 @@ class SoftAttentionModel():
         return context, sentence, logits_list, alpha_list
 
     def var_summaries(self, varlist):
-        for var in varlist:
-            tf.summary.scalar(var.name, var)
-            tf.summary.histogram(var.name+'_hist', var)
+        tf.summary.scalar('loss', varlist[0])
+        tf.summary.histogram('loss_hist', varlist[0])
     def init_lstm(self, mean_ctx):
         init_mW = self.init_weight(self.params.dim_ctx, self.params.dim_hid, name='init_mW')
         init_mb = self.init_bias(self.params.dim_hid, name='init_mb')

@@ -12,9 +12,9 @@ def config_train():
                         help='Initial learning rate.')
     parser.add_argument('--epoch', type=int, default=1000,                  # epoch
                         help='Number of epochs.')
-    parser.add_argument('--word_thrh', type=int, default=80,                # word_thrh
+    parser.add_argument('--word_thrh', type=int, default=5,                 # word_thrh
                         help='Word counts threshold.')
-    parser.add_argument('--batch_size', type=int, default=80,               # batch_size
+    parser.add_argument('--batch_size', type=int, default=256,              # batch_size
                         help='Initial learning rate.')
     parser.add_argument('--ctx_shape', type=tuple, default=(196, 512),      # ctx_shape
                         help='Context shape for attention.')

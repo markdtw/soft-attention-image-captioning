@@ -16,7 +16,7 @@ def train(params, data_loader):
     g = tf.Graph()
     model = SoftAttentionModel(params, data_loader.n_words, data_loader.maxlen, data_loader.bivec)
     loss, context, sentence, mask = model.build()
-    train_op = tf.train.RMSPropOptimizer(params.learning_rate).minimize(loss)
+    train_op = tf.train.AdamOptimizer(params.learning_rate).minimize(loss)
     merged = tf.summary.merge_all()
 
     init_op = tf.global_variables_initializer()
@@ -30,15 +30,15 @@ def train(params, data_loader):
         saver.restore(sess, params.pretrained_path)
 
     for epoch in xrange(params.epoch):
-        for bat in xrange(data_loader.num_batches):
+        for it in xrange(data_loader.num_batches):
             context_batch, sequence_batch, masks_batch = data_loader.next_batch()
             feed_dict = {context: context_batch,
                          sentence: sequence_batch,
                          mask: masks_batch}
-            summary, _, loss_val = sess.run([merged, train_op, loss], feed_dict=feed_dict)
-            train_writer.add_summary(summary)
-            if bat % 10 == 0:
-                print ('epoch: %03d, batch: %04d, loss: %.3f' % (epoch, bat, loss_val))
+            _, loss_val, summary = sess.run([train_op, loss, merged], feed_dict=feed_dict)
+            train_writer.add_summary(summary, it)
+            if it % 10 == 0:
+                print ('epoch: %03d, iteration: %04d, loss: %.3f' % (epoch, it, loss_val))
 
         saver.save(sess, params.log_dir+'model-epoch'.format(epoch), global_step=epoch)
 
