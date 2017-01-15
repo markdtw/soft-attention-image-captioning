@@ -16,7 +16,7 @@ class Data_loader:
 
     def __init__(self, params, inference=False):
         self.params = params
-        captions = cPickle.load(open(params.data_dir+'train_captions_ultimate.pkl', 'rb'))
+        captions = cPickle.load(open(params.data_dir+'train_82783_order.pkl', 'rb'))
         self.captions, sentences = self.captionProcessing(captions)
         self.captions = pd.DataFrame(self.captions)
         
@@ -29,12 +29,13 @@ class Data_loader:
 
         if inference:
             if params.eval_all:
-                #TODO
-                pass
+                self.test_csv = open(params.data_dir+'test.csv', 'r').read().splitlines()[1:]
+                self.test_20548_order = cPickle.load(open(params.data_dir+'test_20548_order.pkl', 'rb'))
+                self.imgs_vgg = np.load(params.data_dir+'test_20548_vggc54npf16.npy')
             else:
                 self.img_path = params.img_path
         else:
-            self.imgs_vgg = np.load(params.data_dir+'train_vggc54npf16.npy')
+            self.imgs_vgg = np.load(params.data_dir+'train_82783_vggc54npf16.npy')
             print ('Features loaded.')
             self.create_batches()
     
@@ -84,7 +85,7 @@ class Data_loader:
         1. all the non-alphanumerical characters
         2. multiple white spaces
         3. leading or trailing white spaces
-        Convert all to lower case
+        And then convert to lower case
         """
         sentences = []
         for c in captions:
@@ -94,18 +95,17 @@ class Data_loader:
             sentences.append(c['caption'])
         return captions, sentences
     
-    def preProBuildWordVocab(self, sentence_iterator, word_count_threshold=100):
-        """This function is from karpathy/neuraltalk with a slight modification.
-        Additionally, counting the max length of a sentence.
+    def preProBuildWordVocab(self, sentence_iterator, word_count_threshold=10):
+        """This function is from karpathy/neuraltalk with a slight modification by me
         Args:
             sentence_iterator: all the captions
             word_count_threshold: word count below this number will be treated as RARE, TA gave us 100
 
         Return:
             maxlen: longest caption length
-            wordtoix: dec_map by TA
-            ixtoword: enc_map by TA
-            bias_init_vector: the legend said that it will reduce the 'perplexity'
+            wordtoix: encode word to index
+            ixtoword: decode from index to word
+            bias_init_vector: the legend says that it will reduce the 'perplexity'
         """
         # count up all word counts so that we can threshold
         # this shouldnt be too expensive of an operation

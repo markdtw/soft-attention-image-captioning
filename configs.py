@@ -37,18 +37,19 @@ def config_test():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='data/',                    # data_dir
                         help='Processed data directory.')
-    parser.add_argument('--model_path', type=str, default='log/model-epoch-6',      # model_path
-                        help='The model we are going to test.')
-    parser.add_argument('--word_thrh', type=int, default=80,                        # word_thrh
-                        help='Word counts threshold.')
+    parser.add_argument('--model_path', type=str, default='log/model-epoch-42',     # model_path
+                        help='The model we are going to test, ONLY THE NUMBER,\
+                                tensorflow will deal with the rest.')
+    parser.add_argument('--word_thrh', type=int, default=5,                         # word_thrh
+                        help='MUST BE THE SAME AS SET IN TRAINING.')
     parser.add_argument('--ctx_shape', type=tuple, default=(196, 512),              # ctx_shape
-                        help='Context shape for attention.')
+                        help='MUST BE THE SAME AS SET IN TRAINING.')
     parser.add_argument('--dim_ctx', type=int, default=512,                         # dim_ctx
-                        help='Context dimension for attention.')
+                        help='MUST BE THE SAME AS SET IN TRAINING.')
     parser.add_argument('--dim_emb', type=int, default=256,                         # dim_emb
-                        help='Embedded dimension.')
+                        help='MUST BE THE SAME AS SET IN TRAINING.')
     parser.add_argument('--dim_hid', type=int, default=256,                         # dim_hid
-                        help='Hidden layer dimension (LSTM).')
+                        help='MUST BE THE SAME AS SET IN TRAINING.')
     parser.add_argument('--img_path', type=str, default=None,                       # img_path
                         help='The image we are going to generate caption of.')
     parser.add_argument('--eval_all', type=bool, default=False,                     # eval_all

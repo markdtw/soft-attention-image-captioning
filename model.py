@@ -54,6 +54,12 @@ class SoftAttentionModel():
         sentence = tf.placeholder(tf.int32, [self.params.batch_size, self.steps])
         mask = tf.placeholder(tf.float32, [self.params.batch_size, self.steps])
 
+        """The building procedure of the Attention + LSTM referred highly to this slide:
+        http://www.slideshare.net/eunjileee/show-attend-and-tell-neural-image-caption-generation-with-visual-attention
+        
+        It has vivid and easy-understanding explanations of how their soft attention works without
+         a bunch of math equations, highly recommended!
+        """
         # context have to be flattened to do tf.matmul
         context_flatten = tf.reshape(context, [-1, self.params.dim_ctx])
         context_encoded = tf.matmul(context_flatten, self.image_att_W)
@@ -73,7 +79,10 @@ class SoftAttentionModel():
             alpha = tf.matmul(context_encoded_flat, self.att_W) + self.att_b
             alpha = tf.reshape(alpha, [-1, self.params.ctx_shape[0]])
             alpha = tf.nn.softmax(alpha)
-
+            """Pretty much done with building the pre-LSTM attention computations by now,
+             there is also a great blog post about LSTM here:
+            https://blog.heuritech.com/2016/01/20/attention-mechanism/
+            """
             weighted_context = tf.reduce_sum(context * tf.expand_dims(alpha, 2), 1)
             # next, we build the standard LSTM cells with the 
             # initialize word embedding matrix
@@ -114,8 +123,7 @@ class SoftAttentionModel():
             total_loss += current_loss
 
         total_loss /= tf.reduce_sum(mask)
-        #self.var_summaries([total_loss, self.att_W, self.lstm_W, self.context_encoded_W, self.decode_lstm_W])
-        self.var_summaries([total_loss])
+        tf.summary.scalar('loss', total_loss)
         return total_loss, context, sentence, mask
 
     def gen_caption(self):
@@ -126,8 +134,6 @@ class SoftAttentionModel():
         word_emb = tf.zeros([1, self.params.dim_emb])
 
         sentence = []
-        alpha_list = []
-        logits_list = []
         for step in xrange(self.steps-1):
             context_encoded += tf.matmul(h, self.hidden_att_W) + self.previous_att_b
             context_encoded = tf.nn.tanh(context_encoded)
@@ -139,8 +145,6 @@ class SoftAttentionModel():
             weighted_context = tf.reduce_sum(tf.squeeze(context) * alpha, 0)
             weighted_context = tf.expand_dims(weighted_context, 0)
             
-            alpha_list.append(alpha)
-
             x_t = tf.matmul(word_emb, self.lstm_W) + self.lstm_b
             lstm_pack = tf.matmul(h, self.lstm_U) + x_t + tf.matmul(weighted_context, self.context_encoded_W)
             i, f, o, new_c = tf.split(1, 4, lstm_pack)
@@ -162,13 +166,9 @@ class SoftAttentionModel():
                 word_emb = tf.nn.embedding_lookup(self.word_emb, max_prob_word)
 
             sentence.append(max_prob_word)
-            logits_list.append(logits_word)
 
-        return context, sentence, logits_list, alpha_list
+        return context, sentence
 
-    def var_summaries(self, varlist):
-        tf.summary.scalar('loss', varlist[0])
-        tf.summary.histogram('loss_hist', varlist[0])
     def init_lstm(self, mean_ctx):
         init_mW = self.init_weight(self.params.dim_ctx, self.params.dim_hid, name='init_mW')
         init_mb = self.init_bias(self.params.dim_hid, name='init_mb')
