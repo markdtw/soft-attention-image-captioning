@@ -1,58 +1,81 @@
-# Soft Attention Captioning
-
+# Soft Attention Image Captioning
 Tensorflow implementation of [Show, Attend and Tell](https://arxiv.org/abs/1502.03044) presented in ICML'15.
 
-This repository is highly based on [jazzsaxmafia/show_attend_and_tell.tensorflow](https://github.com/jazzsaxmafia/show_attend_and_tell.tensorflow) with few bugs fixed according to the paper. The bugs include LSTM and loss computation errors, though they are quite trivial.
+Huge re-factor from last update, compatible with tensorflow >= r1.0
+
 
 ## Prerequisites
-- python 2.7+
-- [Tensorflow 0.12](https://www.tensorflow.org/get_started/os_setup)
-- [scikit-image](http://scikit-image.org/) (for feature extraction)
-- tqdm
-- pandas
+- Python 2.7+
+- [NumPy](http://www.numpy.org/)
+- [Tensorflow r1.0+](https://www.tensorflow.org/install/)
+- [Scikit-image](http://scikit-image.org/)
+- [tqdm](https://pypi.python.org/pypi/tqdm)
+
 
 ## Data
-- Training: [Microsoft COCO: Common Objects in Context](http://mscoco.org/dataset/#download) training set
-- Testing: custom testing set based on `data/test.csv` (20548 images) crawled with MSCOCO API.
+- Training: [Microsoft COCO: Common Objects in Context](http://mscoco.org/dataset/#download) training and validation set
 
-## Preprocessing
-We need 3 things prepared before we train the model:
 
-- The extracted image features from vgg19-conv5_4 of shape (14, 14, 512)
-- Training captions with respect to the features
-- Create an empty folder `log/` for tensorflow
+## Preparation
+1. Clone this repo, create `data/` and `log/` folders:
+```bash
+git clone https://github.com/markdtw/soft-attention-image-captioning.git
+cd soft-attention-image-captioning
+mkdir data
+mkdir log
+```
+2. Download and extract pre-trained `Inception V4` and `VGG 19` [from tf.slim](https://github.com/tensorflow/models/tree/master/slim) for feature extraction.  
+   Save the ckpt files in `cnns/` as `inception_v4_imagenet.ckpt` and `vgg_19_imagenet.ckpt`.
 
-Extracts the features by executing ```python vgg/coco_conv54.py```, which **requires heavy CPU memory usage (up to 80GB) and time (up to 5 hrs)**. The extracted features are too large that I decided to use np.float16 as the final type. The vgg model is from [machrisaa/tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg). To generate the needed captions for my implementation, please refer to `data/map_features.py`. This program generate two files: `train_82783_order.pkl`, `test_20548_order.pkl`.
+3. We need the following files in our `data/` folder:
 
-After the preprocessing steps, we should have `train_82783_order.pkl`, `train_82783_vggc54npf16.npy` in the `data/` directory.
+  - `coco_raw.json`
+  - `coco_processed.json`
+  - `coco_dictionary.pkl`
+  - `coco_final.json`
+  - `train2014_vgg(inception).npy` and `val2014_vgg(inception).npy`
+
+   These files can be generated through `utils.py`, please refer to it before executing.
+
 
 ## Train
-```python
-python train.py
+Train from scratch with default settings:
+```bash
+python main.py --train
 ```
-Tunable parameters in configs.py
+Train from a pre-trained model from epoch X:
+```bash
+python main.py --train --model_path=log/model.ckpt-X
+```
+Check out tunable arguments:
+```bash
+python main.py
+```
 
-## Test
-Single image test:
+## Generate a caption
+Using default(latest) model:
+```bash
+python main.py --generate --img_path=/path/to/image.jpg
 ```
-python test.py --img_path=/path/to/image.jpg
+Using model from epoch X:
+```bash
+python main.py --generate --img_path=/path/to/image.jpg --model_path=log/model.ckpt-X
 ```
-Generate `generated.csv` for all the images in `data/test.csv`. This need you to extracts the features again...
-```
-python test.py --eval_all=True
-```
-Model can be designated by passing argument: ```python test.py --model_path=/path/to/model-epoch-n```. **Notice it is *model-epoch-n*, not *model-epoch-n.meta* nor *model-epoch-n.data* **.
 
-## Evaluation
-Sorry, didn't write.
+## Result
+Training...
+
+
+## Others
+- Features extracted are around 16 + 7.6 (train+val) GB. Make sure you have enough CPU memory when loading the data.
+- GPU memory usage for batch_size 128 is around 8GB.
+- Utilize `tf.while_loop` for rnn implementation, `tf.slim` for feature extraction from their [github page](https://github.com/tensorflow/models/tree/master/slim).
+- GRU cell is implemented, use it by setting `--use_gru=True` when training. (not yet test though)
+- Features can be extracted through [inceptionV4](https://arxiv.org/abs/1602.07261), if so, model.ctx_dim in `model.py` needs to be set to (64, 1536). (not yet test as well)
+- Issues are welcome!
+
 
 ## Resources
-These helps me a lot when building the model besides the original paper:
-
-- [Attention Mechanism Blog Post](https://blog.heuritech.com/2016/01/20/attention-mechanism/)
 - [Show, attend and tell slides](http://www.slideshare.net/eunjileee/show-attend-and-tell-neural-image-caption-generation-with-visual-attention)
-- [School Project Page](http://datalab-lsml.appspot.com/lectures/02-Image-Caption.html)
+- [Attention Mechanism Blog Post](https://blog.heuritech.com/2016/01/20/attention-mechanism/)
 
-## Acknowledgments
-Code based highly on [jazzsaxmafia/show_attend_and_tell.tensorflow](https://github.com/jazzsaxmafia/show_attend_and_tell.tensorflow)<br>
-VGG model from [machrisaa/tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg)
