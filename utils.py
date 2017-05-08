@@ -22,22 +22,21 @@ def load_and_process(path, cnn):
     img = skimage.io.imread(path)
     if len(img.shape) == 2:
         img = skimage.color.gray2rgb(img)
-    img = img / 255.0
-    assert (0 <= img).all() and (img <= 1.0).all()
-    # print "Original Image Shape: ", img.shape
-    # we crop image from center
+    # crop image from center
     short_edge = min(img.shape[:2])
     yy = int((img.shape[0] - short_edge) / 2)
     xx = int((img.shape[1] - short_edge) / 2)
     crop_img = img[yy: yy + short_edge, xx: xx + short_edge]
     if cnn == 'inception':
         resized_img = skimage.transform.resize(crop_img, (299, 299), mode='reflect')
+        assert (0 <= resized_img).all() and (1 >= resized_img).all()
         resized_img -= 0.5
         resized_img *= 2.0
     elif cnn == 'vgg':
+        # resize to 224, 224, scikit-image automatically converts the image to [0, 1], we don't want it
+        resized_img = skimage.transform.resize(crop_img, (224, 224), mode='reflect') * 255.0
+        assert (0 <= resized_img).all() and (255 >= resized_img).all()
         _vgg_mean = [123.68, 116.78, 103.94]
-        # resize to 224, 224
-        resized_img = skimage.transform.resize(crop_img, (224, 224), mode='reflect')
         resized_img[:, :, 0] -= _vgg_mean[0]
         resized_img[:, :, 1] -= _vgg_mean[1]
         resized_img[:, :, 2] -= _vgg_mean[2]

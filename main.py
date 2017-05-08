@@ -19,8 +19,8 @@ def generate(args):
     data_loader = Data_loader(batch_size=1, bias_init=args.bias_init, train=False)
 
     model = Model(wemb_dim=args.wemb_dim, hid_dim=args.hid_dim, seq_len=data_loader.maxlen+1,
-            learning_rate=args.learning_rate, batch_size=1, num_batches=data_loader.num_batches,
-            num_words=data_loader.num_words, biivector=data_loader.biivector, use_gru=args.use_gru, inference=True)
+                  learning_rate=args.learning_rate, batch_size=1, num_batches=data_loader.num_batches,
+                  num_words=data_loader.num_words, biivector=data_loader.biivector, use_gru=args.use_gru, inference=True)
     model.build()
 
     saver = tf.train.Saver()
@@ -56,8 +56,8 @@ def train(args):
     data_loader = Data_loader(batch_size=args.batch_size, bias_init=args.bias_init)
 
     model = Model(wemb_dim=args.wemb_dim, hid_dim=args.hid_dim, seq_len=data_loader.maxlen+1,
-            learning_rate=args.learning_rate, batch_size=args.batch_size, num_batches=data_loader.num_batches,
-            num_words=data_loader.num_words, biivector=data_loader.biivector, use_gru=args.use_gru)
+                  learning_rate=args.learning_rate, batch_size=args.batch_size, num_batches=data_loader.num_batches,
+                  num_words=data_loader.num_words, biivector=data_loader.biivector, use_gru=args.use_gru)
     model.build()
     model.loss()
     train_op = model.train()
