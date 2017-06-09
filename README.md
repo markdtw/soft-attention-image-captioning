@@ -18,27 +18,26 @@ Huge re-factor from last update, compatible with tensorflow >= r1.0
 
 ## Preparation
 1. Clone this repo, create `data/` and `log/` folders:
-```bash
-git clone https://github.com/markdtw/soft-attention-image-captioning.git
-cd soft-attention-image-captioning
-mkdir data
-mkdir log
-```
+    ```bash
+    git clone https://github.com/markdtw/soft-attention-image-captioning.git
+    cd soft-attention-image-captioning
+    mkdir data
+    mkdir log
+    ```
 2. Download and extract pre-trained `Inception V4` and `VGG 19` [from tf.slim](https://github.com/tensorflow/models/tree/master/slim#pre-trained-models) for feature extraction.  
    Save the ckpt files in `cnns/` as `inception_v4_imagenet.ckpt` and `vgg_19_imagenet.ckpt`.
 
 3. We need the following files in our `data/` folder:
-
-  - `coco_raw.json`
-  - `coco_processed.json`
-  - `coco_dictionary.pkl`
-  - `coco_final.json`
-  - `train2014_vgg(inception).npy` and `val2014_vgg(inception).npy`
-
-   These files can be generated through `utils.py`, please refer to it before executing.
+    - `coco_raw.json`
+    - `coco_processed.json`
+    - `coco_dictionary.pkl`
+    - `coco_final.json`
+    - `train2014_vgg(inception).npy` and `val2014_vgg(inception).npy`
+    
+    These files can be generated through `utils.py`, please refer to it before executing.
    
-4. If you are not able to extract the features yourself, [here](https://drive.google.com/open?id=0B5j6QKJb0ztbRXRQWW12ME9uSGs) is the features download link
-  - The files are huge, you can use Google Drive API to download it.
+4. If you are not able to extract the features yourself, [here](https://drive.google.com/open?id=0B5j6QKJb0ztbRXRQWW12ME9uSGs) is the features download link:
+    - It may take a long time to download.
 
 
 ## Train
@@ -65,16 +64,12 @@ Using model from epoch X:
 python main.py --generate --img_path=/path/to/image.jpg --model_path=log/model.ckpt-X
 ```
 
-## Result
-Training...
-
-
 ## Others
-- Features extracted are around 16 + 7.6 (train+val) GB. Make sure you have enough CPU memory when loading the data.
+- Features extracted are around 16 + 8 GB. Make sure you have enough CPU memory when loading the data.
 - GPU memory usage for batch_size 128 is around 8GB.
 - Utilize `tf.while_loop` for rnn implementation, `tf.slim` for feature extraction from their [github page](https://github.com/tensorflow/models/tree/master/slim).
-- GRU cell is implemented, use it by setting `--use_gru=True` when training. (not yet test though)
-- Features can be extracted through [inceptionV4](https://arxiv.org/abs/1602.07261), if so, model.ctx_dim in `model.py` needs to be set to (64, 1536). (not yet test as well)
+- GRU cell is implemented, use it by setting `--use_gru=True` when training.
+- Features can be extracted through [inceptionV4](https://arxiv.org/abs/1602.07261), if so, model.ctx_dim in `model.py` needs to be set to (64, 1536). (other modifications are needed)
 - Issues are welcome!
 
 
