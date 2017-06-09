@@ -24,7 +24,7 @@ cd soft-attention-image-captioning
 mkdir data
 mkdir log
 ```
-2. Download and extract pre-trained `Inception V4` and `VGG 19` [from tf.slim](https://github.com/tensorflow/models/tree/master/slim) for feature extraction.  
+2. Download and extract pre-trained `Inception V4` and `VGG 19` [from tf.slim](https://github.com/tensorflow/models/tree/master/slim#pre-trained-models) for feature extraction.  
    Save the ckpt files in `cnns/` as `inception_v4_imagenet.ckpt` and `vgg_19_imagenet.ckpt`.
 
 3. We need the following files in our `data/` folder:
@@ -36,6 +36,9 @@ mkdir log
   - `train2014_vgg(inception).npy` and `val2014_vgg(inception).npy`
 
    These files can be generated through `utils.py`, please refer to it before executing.
+   
+4. If you are not able to extract the features yourself, [here](https://drive.google.com/open?id=0B5j6QKJb0ztbRXRQWW12ME9uSGs) is the features download link
+  - The files are huge, you can use Google Drive API to download it.
 
 
 ## Train
